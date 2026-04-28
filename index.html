@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Leasingtracker · Polestar 3 EN48110</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700&family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --bg: #f5f5f4;
+    --surface: #ffffff;
+    --ink: #0a0a0a;
+    --ink-soft: #525252;
+    --ink-faint: #a3a3a3;
+    --line: #e7e5e4;
+    --line-strong: #d6d3d1;
+    --accent: #1a1a1a;
+    --good: #2f6f4f;
+    --warn: #b25c00;
+    --bad: #a02a2a;
+    --good-bg: #e8f1ec;
+    --warn-bg: #f7ecd9;
+    --bad-bg: #f4e3e3;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-feature-settings: 'ss01', 'cv11';
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+  }
+
+  body {
+    min-height: 100vh;
+    padding: 32px 24px 80px;
+  }
+
+  .container { max-width: 1100px; margin: 0 auto; }
+
+  /* Header */
+  header {
+    border-bottom: 1px solid var(--line-strong);
+    padding-bottom: 24px;
+    margin-bottom: 32px;
+  }
+  .eyebrow {
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+  }
+  h1 {
+    font-family: 'Bricolage Grotesque', serif;
+    font-weight: 600;
+    font-size: clamp(32px, 5vw, 48px);
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+    margin-bottom: 12px;
+  }
+  .meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px 32px;
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-top: 16px;
+  }
+  .meta-row span strong {
+    color: var(--ink);
+    font-weight: 500;
+    margin-left: 6px;
+    font-family: 'Geist Mono', monospace;
+  }
+
+  /* Section heading */
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin: 40px 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--line);
+  }
+  .section-head h2 {
+    font-family: 'Bricolage Grotesque', serif;
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+  .section-head .hint {
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  /* KPI grid */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .kpi {
+    background: var(--surface);
+    padding: 20px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-height: 110px;
+  }
+  .kpi-label {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .kpi-value {
+    font-family: 'Bricolage Grotesque', serif;
+    font-size: 30px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+  }
+  .kpi-sub {
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-top: auto;
+  }
+
+  /* Status banner */
+  .status {
+    margin-top: 12px;
+    padding: 16px 20px;
+    border-radius: 4px;
+    border: 1px solid var(--line-strong);
+    background: var(--surface);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .status.good { background: var(--good-bg); border-color: var(--good); }
+  .status.warn { background: var(--warn-bg); border-color: var(--warn); }
+  .status.bad  { background: var(--bad-bg);  border-color: var(--bad); }
+  .status-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--ink);
+    margin-right: 10px;
+    vertical-align: middle;
+  }
+  .status.good .status-dot { background: var(--good); }
+  .status.warn .status-dot { background: var(--warn); }
+  .status.bad  .status-dot { background: var(--bad); }
+  .status-text {
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .status-detail {
+    font-family: 'Geist Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-soft);
+  }
+
+  /* Chart */
+  .chart-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 24px;
+    height: 380px;
+    position: relative;
+  }
+  @media (max-width: 600px) {
+    .chart-card { height: 300px; padding: 16px; }
+  }
+
+  /* Form */
+  .form-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 20px;
+  }
+  .form-row {
+    display: grid;
+    grid-template-columns: 160px 140px 1fr auto;
+    gap: 12px;
+    align-items: end;
+  }
+  @media (max-width: 700px) {
+    .form-row { grid-template-columns: 1fr 1fr; }
+    .form-row > :nth-child(3), .form-row > :nth-child(4) { grid-column: span 2; }
+  }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .field input {
+    font-family: 'Geist', sans-serif;
+    font-size: 14px;
+    padding: 10px 12px;
+    border: 1px solid var(--line-strong);
+    border-radius: 3px;
+    background: var(--bg);
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .field input:focus { border-color: var(--ink); }
+  .btn {
+    font-family: 'Geist', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 10px 18px;
+    background: var(--ink);
+    color: var(--surface);
+    border: 1px solid var(--ink);
+    border-radius: 3px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    letter-spacing: 0.01em;
+  }
+  .btn:hover { opacity: 0.85; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-ghost {
+    background: transparent;
+    color: var(--ink);
+    border-color: var(--line-strong);
+  }
+
+  /* Table */
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    overflow: hidden;
+    overflow-x: auto;
+  }
+  table { width: 100%; border-collapse: collapse; min-width: 600px; }
+  thead th {
+    text-align: left;
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    padding: 12px 16px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--line-strong);
+    font-weight: 500;
+  }
+  tbody td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line);
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+  }
+  tbody td.mono { font-family: 'Geist Mono', monospace; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--bg); }
+  .delete-btn {
+    background: none;
+    border: none;
+    color: var(--ink-faint);
+    font-size: 12px;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 2px;
+    transition: color 0.15s, background 0.15s;
+  }
+  .delete-btn:hover { color: var(--bad); background: var(--bad-bg); }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--ink);
+    color: var(--surface);
+    padding: 12px 20px;
+    border-radius: 3px;
+    font-size: 13px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    transition: transform 0.25s ease;
+    z-index: 100;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.error { background: var(--bad); }
+
+  /* Empty state */
+  .empty {
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--ink-faint);
+    font-size: 14px;
+  }
+
+  /* Loading */
+  .loading {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 2px solid var(--line);
+    border-top-color: var(--ink);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  footer {
+    margin-top: 60px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-faint);
+    letter-spacing: 0.05em;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="eyebrow">Leasingtracker</div>
+    <h1>Polestar 3 · EN48110</h1>
+    <div class="meta-row">
+      <span>Start <strong id="meta-start">—</strong></span>
+      <span>Slutt <strong id="meta-end">—</strong></span>
+      <span>Inkludert km <strong id="meta-total">—</strong></span>
+      <span>Pris pr overkjørt km <strong id="meta-overage">—</strong></span>
+    </div>
+  </header>
+
+  <!-- KPI cards -->
+  <section>
+    <div class="section-head">
+      <h2>Status</h2>
+      <span class="hint">Oppdatert i sanntid</span>
+    </div>
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="kpi-label">Kjørt</div>
+        <div class="kpi-value" id="kpi-driven">—</div>
+        <div class="kpi-sub" id="kpi-driven-sub">av inkludert km</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Gjenværende</div>
+        <div class="kpi-value" id="kpi-remaining">—</div>
+        <div class="kpi-sub" id="kpi-remaining-sub">til slutten av avtalen</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Snitt pr dag</div>
+        <div class="kpi-value" id="kpi-avg">—</div>
+        <div class="kpi-sub" id="kpi-avg-sub">historisk snitt</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Tillatt fremover</div>
+        <div class="kpi-value" id="kpi-budget">—</div>
+        <div class="kpi-sub" id="kpi-budget-sub">km pr dag for å holde 75 000</div>
+      </div>
+    </div>
+
+    <div class="status" id="status-banner">
+      <div>
+        <span class="status-dot"></span>
+        <span class="status-text" id="status-text">Beregner…</span>
+      </div>
+      <div class="status-detail" id="status-detail"></div>
+    </div>
+  </section>
+
+  <!-- Chart -->
+  <section>
+    <div class="section-head">
+      <h2>Kjørelengde over tid</h2>
+      <span class="hint">Faktisk vs ideallinje</span>
+    </div>
+    <div class="chart-card">
+      <canvas id="chart"></canvas>
+    </div>
+  </section>
+
+  <!-- Add reading -->
+  <section>
+    <div class="section-head">
+      <h2>Ny avlesning</h2>
+      <span class="hint">Kilometerstand fra dashbordet</span>
+    </div>
+    <div class="form-card">
+      <div class="form-row">
+        <div class="field">
+          <label for="input-date">Dato</label>
+          <input type="date" id="input-date" />
+        </div>
+        <div class="field">
+          <label for="input-km">Km-stand</label>
+          <input type="number" id="input-km" placeholder="0" min="0" step="1" />
+        </div>
+        <div class="field">
+          <label for="input-note">Notat (valgfritt)</label>
+          <input type="text" id="input-note" placeholder="" />
+        </div>
+        <button class="btn" id="btn-save">Lagre</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Table -->
+  <section>
+    <div class="section-head">
+      <h2>Avlesninger</h2>
+      <span class="hint" id="reading-count">0</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Dato</th>
+            <th>Km-stand</th>
+            <th>Kjørt siden forrige</th>
+            <th>Km/dag</th>
+            <th>Notat</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="readings-body">
+          <tr><td colspan="6" class="empty">Henter data…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>EN48110 · Polestar 3 · Personlig leasingtracker</footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ============================================================
+  // KONFIGURASJON — endre disse to verdiene etter Supabase-oppsett
+  // ============================================================
+  const SUPABASE_URL  = 'DIN_SUPABASE_URL';   // f.eks. https://xxxxxxxx.supabase.co
+  const SUPABASE_ANON = 'DIN_ANON_KEY';        // anon public key fra Supabase
+
+  // Avtaledetaljer
+  const CONTRACT = {
+    car:         'Polestar 3',
+    plate:       'EN48110',
+    startDate:   '2025-05-23',   // YYYY-MM-DD
+    endDate:     '2028-05-23',   // YYYY-MM-DD  ← endre hvis avtalen er kortere/lengre
+    totalKm:     75000,
+    overageNok:  2.50            // kr pr overkjørt km
+  };
+  // ============================================================
+
+  const fmtN = (n) => Number(n).toLocaleString('nb-NO', { maximumFractionDigits: 0 });
+  const fmtN1 = (n) => Number(n).toLocaleString('nb-NO', { maximumFractionDigits: 1 });
+  const fmtDate = (s) => new Date(s).toLocaleDateString('nb-NO', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  const daysBetween = (a, b) => Math.round((new Date(b) - new Date(a)) / 86400000);
+  const today = () => new Date().toISOString().slice(0, 10);
+
+  // Fyll inn meta-data fra CONTRACT
+  document.getElementById('meta-start').textContent  = fmtDate(CONTRACT.startDate);
+  document.getElementById('meta-end').textContent    = fmtDate(CONTRACT.endDate);
+  document.getElementById('meta-total').textContent  = fmtN(CONTRACT.totalKm) + ' km';
+  document.getElementById('meta-overage').textContent= CONTRACT.overageNok.toFixed(2).replace('.', ',') + ' kr';
+  document.getElementById('input-date').value = today();
+
+  // Toast helper
+  function toast(msg, isError = false) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.toggle('error', isError);
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 2400);
+  }
+
+  // Supabase init
+  let sb = null;
+  let configured = SUPABASE_URL && SUPABASE_URL !== 'DIN_SUPABASE_URL' && SUPABASE_ANON && SUPABASE_ANON !== 'DIN_ANON_KEY';
+  if (configured) {
+    sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+  }
+
+  // State
+  let readings = [];
+  let chart = null;
+
+  async function loadReadings() {
+    if (!configured) {
+      document.getElementById('readings-body').innerHTML =
+        '<tr><td colspan="6" class="empty">Supabase-nøkler er ikke satt enda. Fyll inn SUPABASE_URL og SUPABASE_ANON øverst i HTML-filen.</td></tr>';
+      render();
+      return;
+    }
+    const { data, error } = await sb
+      .from('readings')
+      .select('*')
+      .order('reading_date', { ascending: true });
+    if (error) {
+      console.error(error);
+      toast('Klarte ikke hente data: ' + error.message, true);
+      return;
+    }
+    readings = data || [];
+    render();
+  }
+
+  async function addReading() {
+    const date = document.getElementById('input-date').value;
+    const km   = parseInt(document.getElementById('input-km').value, 10);
+    const note = document.getElementById('input-note').value.trim() || null;
+    if (!date || !Number.isFinite(km) || km < 0) {
+      toast('Fyll inn gyldig dato og km-stand', true);
+      return;
+    }
+    if (!configured) { toast('Supabase ikke konfigurert', true); return; }
+    const btn = document.getElementById('btn-save');
+    btn.disabled = true;
+    const { error } = await sb.from('readings').insert([{
+      reading_date: date, odometer_km: km, notes: note
+    }]);
+    btn.disabled = false;
+    if (error) { toast('Feil: ' + error.message, true); return; }
+    document.getElementById('input-km').value = '';
+    document.getElementById('input-note').value = '';
+    document.getElementById('input-date').value = today();
+    toast('Lagret');
+    loadReadings();
+  }
+
+  async function deleteReading(id) {
+    if (!confirm('Slette denne avlesningen?')) return;
+    const { error } = await sb.from('readings').delete().eq('id', id);
+    if (error) { toast('Feil: ' + error.message, true); return; }
+    toast('Slettet');
+    loadReadings();
+  }
+
+  function render() {
+    renderTable();
+    renderKPIs();
+    renderChart();
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById('readings-body');
+    document.getElementById('reading-count').textContent = readings.length + ' linjer';
+    if (!readings.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="empty">Ingen avlesninger enda</td></tr>';
+      return;
+    }
+    // Vis nyeste øverst i tabellen
+    const sorted = [...readings].sort((a,b) => new Date(b.reading_date) - new Date(a.reading_date));
+    tbody.innerHTML = sorted.map((r, i) => {
+      const next = sorted[i + 1]; // next in displayed order = previous in time
+      let driven = '—', perDay = '—';
+      if (next) {
+        const d = r.odometer_km - next.odometer_km;
+        const days = daysBetween(next.reading_date, r.reading_date);
+        driven = (d >= 0 ? '+' : '') + fmtN(d) + ' km';
+        perDay = days > 0 ? fmtN1(d / days) : '—';
+      }
+      return `<tr>
+        <td class="mono">${fmtDate(r.reading_date)}</td>
+        <td class="mono">${fmtN(r.odometer_km)} km</td>
+        <td class="mono">${driven}</td>
+        <td class="mono">${perDay}</td>
+        <td>${r.notes ? r.notes.replace(/[<>]/g,'') : ''}</td>
+        <td><button class="delete-btn" onclick="deleteReading('${r.id}')">Slett</button></td>
+      </tr>`;
+    }).join('');
+  }
+
+  function renderKPIs() {
+    const last = readings.length ? readings[readings.length - 1] : null;
+    const driven = last ? last.odometer_km : 0;
+    const remaining = CONTRACT.totalKm - driven;
+
+    const startD = new Date(CONTRACT.startDate);
+    const endD   = new Date(CONTRACT.endDate);
+    const todayD = new Date();
+    const totalDays   = daysBetween(startD, endD);
+    const daysSoFar   = Math.max(1, daysBetween(startD, todayD));
+    const daysLeft    = Math.max(0, daysBetween(todayD, endD));
+    const dailyAllow  = CONTRACT.totalKm / totalDays;
+    const expectedNow = dailyAllow * daysSoFar;
+    const avgPerDay   = driven / daysSoFar;
+    const allowedFwd  = daysLeft > 0 ? remaining / daysLeft : 0;
+
+    document.getElementById('kpi-driven').textContent     = fmtN(driven) + ' km';
+    document.getElementById('kpi-driven-sub').textContent = ((driven / CONTRACT.totalKm) * 100).toFixed(1).replace('.', ',') + ' % av ' + fmtN(CONTRACT.totalKm);
+    document.getElementById('kpi-remaining').textContent     = fmtN(remaining) + ' km';
+    document.getElementById('kpi-remaining-sub').textContent = fmtN(daysLeft) + ' dager igjen';
+    document.getElementById('kpi-avg').textContent     = fmtN1(avgPerDay) + ' km';
+    document.getElementById('kpi-avg-sub').textContent = 'over ' + fmtN(daysSoFar) + ' dager';
+    document.getElementById('kpi-budget').textContent     = fmtN1(allowedFwd) + ' km';
+    document.getElementById('kpi-budget-sub').textContent = 'budsjett: ' + fmtN1(dailyAllow) + ' km/dag';
+
+    // Status-banner
+    const banner   = document.getElementById('status-banner');
+    const stText   = document.getElementById('status-text');
+    const stDetail = document.getElementById('status-detail');
+    banner.classList.remove('good', 'warn', 'bad');
+    if (!last) {
+      stText.textContent = 'Legg inn første avlesning for å starte sporing';
+      stDetail.textContent = '';
+      return;
+    }
+    const diff = driven - expectedNow; // positiv = foran budsjett (kjørt mer enn ideelt)
+    const projected = avgPerDay * totalDays;
+    if (diff < -500) {
+      banner.classList.add('good');
+      stText.textContent = 'Bak budsjett — du har god margin';
+    } else if (diff <= 1500) {
+      banner.classList.add('good');
+      stText.textContent = 'På rute';
+    } else if (diff <= 3500) {
+      banner.classList.add('warn');
+      stText.textContent = 'Litt foran budsjett';
+    } else {
+      banner.classList.add('bad');
+      stText.textContent = 'Foran budsjett — risiko for overkjøring';
+    }
+    const overUnder = diff >= 0
+      ? '+' + fmtN(diff) + ' km vs ideallinje'
+      : fmtN(diff) + ' km vs ideallinje';
+    const projTxt = 'prognose ved leasingslutt: ' + fmtN(projected) + ' km';
+    let costTxt = '';
+    if (projected > CONTRACT.totalKm) {
+      const cost = (projected - CONTRACT.totalKm) * CONTRACT.overageNok;
+      costTxt = ' · estimert overkjøringskostnad: ' + fmtN(cost) + ' kr';
+    }
+    stDetail.textContent = overUnder + ' · ' + projTxt + costTxt;
+  }
+
+  function renderChart() {
+    const ctx = document.getElementById('chart').getContext('2d');
+    const startD = new Date(CONTRACT.startDate);
+    const endD   = new Date(CONTRACT.endDate);
+
+    // Faktisk-data
+    const actualPoints = readings.map(r => ({ x: r.reading_date, y: r.odometer_km }));
+
+    // Ideallinje: 0 km på startdato → totalKm på sluttdato
+    const idealPoints = [
+      { x: CONTRACT.startDate, y: 0 },
+      { x: CONTRACT.endDate,   y: CONTRACT.totalKm }
+    ];
+
+    // Prognoselinje fra siste avlesning, basert på historisk snitt
+    let projectionPoints = [];
+    if (readings.length >= 1) {
+      const last = readings[readings.length - 1];
+      const daysSoFar = Math.max(1, daysBetween(startD, new Date(last.reading_date)));
+      const avgPerDay = last.odometer_km / daysSoFar;
+      const daysToEnd = daysBetween(new Date(last.reading_date), endD);
+      const projectedEnd = last.odometer_km + avgPerDay * daysToEnd;
+      projectionPoints = [
+        { x: last.reading_date, y: last.odometer_km },
+        { x: CONTRACT.endDate,  y: projectedEnd }
+      ];
+    }
+
+    if (chart) chart.destroy();
+    chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        datasets: [
+          {
+            label: 'Faktisk km-stand',
+            data: actualPoints,
+            borderColor: '#0a0a0a',
+            backgroundColor: '#0a0a0a',
+            borderWidth: 2,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            tension: 0.15
+          },
+          {
+            label: 'Ideallinje',
+            data: idealPoints,
+            borderColor: '#a3a3a3',
+            borderDash: [4, 4],
+            borderWidth: 1.5,
+            pointRadius: 0,
+            fill: false
+          },
+          {
+            label: 'Prognose',
+            data: projectionPoints,
+            borderColor: '#b25c00',
+            borderDash: [2, 3],
+            borderWidth: 1.5,
+            pointRadius: 0,
+            fill: false
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              font: { family: 'Geist Mono', size: 11 },
+              color: '#525252',
+              boxWidth: 14,
+              padding: 16
+            }
+          },
+          tooltip: {
+            backgroundColor: '#0a0a0a',
+            titleFont: { family: 'Geist', size: 12 },
+            bodyFont: { family: 'Geist Mono', size: 12 },
+            padding: 10,
+            callbacks: {
+              title: (items) => fmtDate(items[0].parsed.x),
+              label:  (item)  => item.dataset.label + ': ' + fmtN(item.parsed.y) + ' km'
+            }
+          }
+        },
+        scales: {
+          x: {
+            type: 'time',
+            time: { unit: 'month', displayFormats: { month: 'MMM yy' } },
+            min: CONTRACT.startDate,
+            max: CONTRACT.endDate,
+            grid: { color: '#f0eeec' },
+            ticks: { color: '#737373', font: { family: 'Geist Mono', size: 10 } }
+          },
+          y: {
+            beginAtZero: true,
+            suggestedMax: CONTRACT.totalKm * 1.05,
+            grid: { color: '#f0eeec' },
+            ticks: {
+              color: '#737373',
+              font: { family: 'Geist Mono', size: 10 },
+              callback: (v) => fmtN(v)
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // Wire up
+  document.getElementById('btn-save').addEventListener('click', addReading);
+  document.getElementById('input-km').addEventListener('keydown', (e) => { if (e.key === 'Enter') addReading(); });
+
+  // Chart.js trenger date-adapter for tidsakse — last den dynamisk
+  (function loadAdapterAndStart(){
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js';
+    s.onload = loadReadings;
+    document.head.appendChild(s);
+  })();
+</script>
+</body>
+</html>
