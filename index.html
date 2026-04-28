@@ -4,9 +4,6 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Leasingtracker · Polestar 3 EN48110</title>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700&family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -32,7 +29,7 @@
   html, body {
     background: var(--bg);
     color: var(--ink);
-    font-family: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: Arial, sans-serif;
     font-feature-settings: 'ss01', 'cv11';
     -webkit-font-smoothing: antialiased;
     line-height: 1.5;
@@ -50,9 +47,26 @@
     border-bottom: 1px solid var(--line-strong);
     padding-bottom: 24px;
     margin-bottom: 32px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+  }
+  .header-text { flex: 1; min-width: 0; }
+  .header-image {
+    flex-shrink: 0;
+    width: 280px;
+    max-width: 100%;
+    height: auto;
+    object-fit: contain;
+    align-self: center;
+  }
+  @media (max-width: 700px) {
+    header { flex-direction: column; align-items: stretch; }
+    .header-image { width: 100%; max-width: 380px; margin: 8px auto 0; }
   }
   .eyebrow {
-    font-family: 'Geist Mono', monospace;
+    font-family: Arial, sans-serif;
     font-size: 11px;
     letter-spacing: 0.16em;
     text-transform: uppercase;
@@ -60,7 +74,7 @@
     margin-bottom: 8px;
   }
   h1 {
-    font-family: 'Bricolage Grotesque', serif;
+    font-family: Arial, sans-serif;
     font-weight: 600;
     font-size: clamp(32px, 5vw, 48px);
     letter-spacing: -0.02em;
@@ -79,7 +93,7 @@
     color: var(--ink);
     font-weight: 500;
     margin-left: 6px;
-    font-family: 'Geist Mono', monospace;
+    font-family: Arial, sans-serif;
   }
 
   /* Section heading */
@@ -92,13 +106,13 @@
     border-bottom: 1px solid var(--line);
   }
   .section-head h2 {
-    font-family: 'Bricolage Grotesque', serif;
+    font-family: Arial, sans-serif;
     font-size: 18px;
     font-weight: 500;
     letter-spacing: -0.01em;
   }
   .section-head .hint {
-    font-family: 'Geist Mono', monospace;
+    font-family: Arial, sans-serif;
     font-size: 11px;
     color: var(--ink-faint);
     text-transform: uppercase;
@@ -124,14 +138,14 @@
     min-height: 110px;
   }
   .kpi-label {
-    font-family: 'Geist Mono', monospace;
+    font-family: Arial, sans-serif;
     font-size: 10px;
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--ink-soft);
   }
   .kpi-value {
-    font-family: 'Bricolage Grotesque', serif;
+    font-family: Arial, sans-serif;
     font-size: 30px;
     font-weight: 500;
     letter-spacing: -0.02em;
@@ -176,7 +190,7 @@
     font-weight: 500;
   }
   .status-detail {
-    font-family: 'Geist Mono', monospace;
+    font-family: Arial, sans-serif;
     font-size: 12px;
     color: var(--ink-soft);
   }
@@ -192,6 +206,67 @@
   }
   @media (max-width: 600px) {
     .chart-card { height: 300px; padding: 16px; }
+  }
+
+  /* Progress bar i KPI */
+  .kpi-progress {
+    margin-top: 8px;
+    height: 6px;
+    background: var(--line);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .kpi-progress-fill {
+    height: 100%;
+    background: var(--ink);
+    border-radius: 3px;
+    transition: width 0.4s ease;
+  }
+  .kpi-progress-fill.warn { background: var(--warn); }
+  .kpi-progress-fill.bad  { background: var(--bad); }
+
+  /* Dato-filter over graf */
+  .date-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+    align-items: center;
+  }
+  .date-filter button {
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    padding: 7px 12px;
+    background: var(--surface);
+    color: var(--ink);
+    border: 1px solid var(--line-strong);
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+  .date-filter button:hover { background: var(--bg); }
+  .date-filter button.active {
+    background: var(--ink);
+    color: var(--surface);
+    border-color: var(--ink);
+  }
+  .date-filter .custom-range {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    margin-left: 8px;
+    font-size: 12px;
+    color: var(--ink-soft);
+  }
+  .date-filter .custom-range.show { display: inline-flex; }
+  .date-filter .custom-range input {
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    padding: 6px 8px;
+    border: 1px solid var(--line-strong);
+    border-radius: 3px;
+    background: var(--bg);
+    color: var(--ink);
   }
 
   /* Form */
@@ -213,14 +288,14 @@
   }
   .field { display: flex; flex-direction: column; gap: 6px; }
   .field label {
-    font-family: 'Geist Mono', monospace;
+    font-family: Arial, sans-serif;
     font-size: 10px;
     letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--ink-soft);
   }
   .field input {
-    font-family: 'Geist', sans-serif;
+    font-family: Arial, sans-serif;
     font-size: 14px;
     padding: 10px 12px;
     border: 1px solid var(--line-strong);
@@ -232,7 +307,7 @@
   }
   .field input:focus { border-color: var(--ink); }
   .btn {
-    font-family: 'Geist', sans-serif;
+    font-family: Arial, sans-serif;
     font-size: 13px;
     font-weight: 500;
     padding: 10px 18px;
@@ -263,7 +338,7 @@
   table { width: 100%; border-collapse: collapse; min-width: 600px; }
   thead th {
     text-align: left;
-    font-family: 'Geist Mono', monospace;
+    font-family: Arial, sans-serif;
     font-size: 10px;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -279,7 +354,7 @@
     font-size: 14px;
     font-variant-numeric: tabular-nums;
   }
-  tbody td.mono { font-family: 'Geist Mono', monospace; }
+  tbody td.mono { font-family: Arial, sans-serif; }
   tbody tr:last-child td { border-bottom: none; }
   tbody tr:hover { background: var(--bg); }
   .delete-btn {
@@ -335,7 +410,7 @@
     margin-top: 60px;
     padding-top: 24px;
     border-top: 1px solid var(--line);
-    font-family: 'Geist Mono', monospace;
+    font-family: Arial, sans-serif;
     font-size: 11px;
     color: var(--ink-faint);
     letter-spacing: 0.05em;
@@ -346,26 +421,43 @@
 <div class="container">
 
   <header>
-    <div class="eyebrow">Leasingtracker</div>
-    <h1>Polestar 3 · EN48110</h1>
-    <div class="meta-row">
-      <span>Start <strong id="meta-start">—</strong></span>
-      <span>Slutt <strong id="meta-end">—</strong></span>
-      <span>Inkludert km <strong id="meta-total">—</strong></span>
-      <span>Pris pr overkjørt km <strong id="meta-overage">—</strong></span>
+    <div class="header-text">
+      <div class="eyebrow">Leasingtracker</div>
+      <h1>Polestar 3 · EN48110</h1>
+      <div class="meta-row">
+        <span>Start <strong id="meta-start">—</strong></span>
+        <span>Slutt <strong id="meta-end">—</strong></span>
+        <span>Inkludert km <strong id="meta-total">—</strong></span>
+        <span>Pris pr overkjørt km <strong id="meta-overage">—</strong></span>
+      </div>
     </div>
+    <img class="header-image"
+         src="https://car-images.polestar.com/359/2025/summary-transparent/EA/72900/001190/RN0000/19/_/_/XPLUSS/_/1/000179/default/0.png"
+         alt="Polestar 3" loading="lazy" />
   </header>
 
   <!-- KPI cards -->
   <section>
     <div class="section-head">
       <h2>Status</h2>
-      <span class="hint">Oppdatert i sanntid</span>
+      <span class="hint" id="filter-hint">Hele perioden</span>
+    </div>
+    <div class="date-filter" id="date-filter">
+      <button data-range="ytd">Hittil i år</button>
+      <button data-range="year">Hele året</button>
+      <button data-range="full" class="active">Hele perioden</button>
+      <button data-range="custom">Egendefinert</button>
+      <span class="custom-range" id="custom-range">
+        <input type="date" id="filter-from" />
+        <span>til</span>
+        <input type="date" id="filter-to" />
+      </span>
     </div>
     <div class="kpi-grid">
       <div class="kpi">
         <div class="kpi-label">Kjørt</div>
         <div class="kpi-value" id="kpi-driven">—</div>
+        <div class="kpi-progress"><div class="kpi-progress-fill" id="kpi-progress-fill" style="width: 0%"></div></div>
         <div class="kpi-sub" id="kpi-driven-sub">av inkludert km</div>
       </div>
       <div class="kpi">
@@ -597,32 +689,96 @@
     }).join('');
   }
 
+  // Interpolerer km-stand for en gitt dato basert på avlesningene
+  function kmAtDate(dateStr) {
+    const target = new Date(dateStr);
+    const sorted = [...readings].sort((a, b) => new Date(a.reading_date) - new Date(b.reading_date));
+    if (!sorted.length) return 0;
+    const first = new Date(sorted[0].reading_date);
+    const last  = new Date(sorted[sorted.length - 1].reading_date);
+    if (target <= first) return sorted[0].odometer_km;
+    if (target >= last)  return sorted[sorted.length - 1].odometer_km;
+    for (let i = 0; i < sorted.length - 1; i++) {
+      const a = new Date(sorted[i].reading_date);
+      const b = new Date(sorted[i + 1].reading_date);
+      if (target >= a && target <= b) {
+        const ratio = (target - a) / (b - a);
+        return sorted[i].odometer_km + (sorted[i + 1].odometer_km - sorted[i].odometer_km) * ratio;
+      }
+    }
+    return sorted[sorted.length - 1].odometer_km;
+  }
+
   function renderKPIs() {
     const last = readings.length ? readings[readings.length - 1] : null;
-    const driven = last ? last.odometer_km : 0;
-    const remaining = CONTRACT.totalKm - driven;
+    const todayStr = today();
+    const totalLeaseDays = daysBetween(CONTRACT.startDate, CONTRACT.endDate);
+    const dailyAllow = CONTRACT.totalKm / totalLeaseDays;
 
-    const startD = new Date(CONTRACT.startDate);
-    const endD   = new Date(CONTRACT.endDate);
-    const todayD = new Date();
-    const totalDays   = daysBetween(startD, endD);
-    const daysSoFar   = Math.max(1, daysBetween(startD, todayD));
-    const daysLeft    = Math.max(0, daysBetween(todayD, endD));
-    const dailyAllow  = CONTRACT.totalKm / totalDays;
-    const expectedNow = dailyAllow * daysSoFar;
-    const avgPerDay   = driven / daysSoFar;
-    const allowedFwd  = daysLeft > 0 ? remaining / daysLeft : 0;
+    // Hent vinduet fra dateFilter
+    const winFrom = dateFilter.from;
+    const winTo   = dateFilter.to;
+    const effTo   = winTo > todayStr ? todayStr : winTo;
+    const winDays = Math.max(1, daysBetween(winFrom, winTo));      // hele vinduet
+    const effDays = Math.max(1, daysBetween(winFrom, effTo));      // fra start til i dag (eller vindu-slutt)
+    const daysLeft = Math.max(0, daysBetween(effTo, winTo));       // gjenstående dager i vinduet
 
-    document.getElementById('kpi-driven').textContent     = fmtN(driven) + ' km';
-    document.getElementById('kpi-driven-sub').textContent = ((driven / CONTRACT.totalKm) * 100).toFixed(1).replace('.', ',') + ' % av ' + fmtN(CONTRACT.totalKm);
-    document.getElementById('kpi-remaining').textContent     = fmtN(remaining) + ' km';
-    document.getElementById('kpi-remaining-sub').textContent = fmtN(daysLeft) + ' dager igjen';
-    document.getElementById('kpi-avg').textContent     = fmtN1(avgPerDay) + ' km';
-    document.getElementById('kpi-avg-sub').textContent = 'over ' + fmtN(daysSoFar) + ' dager';
-    document.getElementById('kpi-budget').textContent     = fmtN1(allowedFwd) + ' km';
-    document.getElementById('kpi-budget-sub').textContent = 'budsjett: ' + fmtN1(dailyAllow) + ' km/dag';
+    // Kjørt i vinduet (fra første km-stand til siste, interpolert)
+    const kmStart = kmAtDate(winFrom);
+    const kmEnd   = kmAtDate(effTo);
+    const driven  = Math.max(0, kmEnd - kmStart);
 
-    // Status-banner
+    // Pro rata budsjett for vinduets totale lengde (75 000 for hele perioden, ~25 000 for et helt år osv)
+    const target = Math.round(dailyAllow * winDays);
+    const remaining = target - driven;
+
+    // Forventet til nå (pro rata for effektive dager)
+    const expectedNow = dailyAllow * effDays;
+    const avgPerDay = driven / effDays;
+    const allowedFwd = daysLeft > 0 ? Math.max(0, remaining) / daysLeft : 0;
+
+    // Filter-label (vises i header-hint)
+    const labelMap = {
+      ytd:    'Hittil siden ' + fmtDate(winFrom),
+      year:   'Leasingår: ' + fmtDate(winFrom) + ' – ' + fmtDate(winTo),
+      full:   'Hele perioden',
+      custom: 'Egendefinert: ' + fmtDate(winFrom) + ' – ' + fmtDate(winTo)
+    };
+    document.getElementById('filter-hint').textContent = labelMap[dateFilter.mode] || 'Hele perioden';
+
+    // KPI 1: Kjørt
+    document.getElementById('kpi-driven').textContent = fmtN(driven) + ' km';
+    document.getElementById('kpi-driven-sub').textContent =
+      ((driven / target) * 100).toFixed(1).replace('.', ',') + ' % av ' + fmtN(target) + ' km';
+
+    // Progress-bar
+    const pctDriven = Math.min(100, (driven / target) * 100);
+    const fill = document.getElementById('kpi-progress-fill');
+    fill.style.width = pctDriven + '%';
+    fill.classList.remove('warn', 'bad');
+    const diffEarly = driven - expectedNow;
+    if (diffEarly > 3500)      fill.classList.add('bad');
+    else if (diffEarly > 1500) fill.classList.add('warn');
+
+    // KPI 2: Gjenværende
+    document.getElementById('kpi-remaining').textContent = fmtN(remaining) + ' km';
+    document.getElementById('kpi-remaining-sub').textContent =
+      daysLeft > 0 ? fmtN(daysLeft) + ' dager igjen i perioden' : 'perioden er over';
+
+    // KPI 3: Snitt pr dag
+    document.getElementById('kpi-avg').textContent = fmtN1(avgPerDay) + ' km';
+    document.getElementById('kpi-avg-sub').textContent = 'over ' + fmtN(effDays) + ' dager';
+
+    // KPI 4: Tillatt fremover
+    if (daysLeft > 0) {
+      document.getElementById('kpi-budget').textContent = fmtN1(allowedFwd) + ' km';
+      document.getElementById('kpi-budget-sub').textContent = 'pr dag for å holde ' + fmtN(target) + ' km';
+    } else {
+      document.getElementById('kpi-budget').textContent = '—';
+      document.getElementById('kpi-budget-sub').textContent = 'perioden er over';
+    }
+
+    // Status-banner (alltid mot ideallinjen for valgt periode)
     const banner   = document.getElementById('status-banner');
     const stText   = document.getElementById('status-text');
     const stDetail = document.getElementById('status-detail');
@@ -632,8 +788,7 @@
       stDetail.textContent = '';
       return;
     }
-    const diff = driven - expectedNow; // positiv = foran budsjett (kjørt mer enn ideelt)
-    const projected = avgPerDay * totalDays;
+    const diff = driven - expectedNow;
     if (diff < -500) {
       banner.classList.add('good');
       stText.textContent = 'Bak budsjett — du har god margin';
@@ -647,6 +802,12 @@
       banner.classList.add('bad');
       stText.textContent = 'Foran budsjett — risiko for overkjøring';
     }
+
+    // Detalj-tekst: prognose mot kontrakten beregnes alltid mot full kontrakt
+    const totalDriven = last.odometer_km;
+    const daysSinceLeaseStart = Math.max(1, daysBetween(CONTRACT.startDate, todayStr));
+    const lifetimeAvg = totalDriven / daysSinceLeaseStart;
+    const projected = lifetimeAvg * totalLeaseDays;
     const overUnder = diff >= 0
       ? '+' + fmtN(diff) + ' km vs ideallinje'
       : fmtN(diff) + ' km vs ideallinje';
@@ -730,7 +891,7 @@
           legend: {
             position: 'bottom',
             labels: {
-              font: { family: 'Geist Mono', size: 11 },
+              font: { family: 'Arial', size: 11 },
               color: '#525252',
               boxWidth: 14,
               padding: 16
@@ -738,8 +899,8 @@
           },
           tooltip: {
             backgroundColor: '#0a0a0a',
-            titleFont: { family: 'Geist', size: 12 },
-            bodyFont: { family: 'Geist Mono', size: 12 },
+            titleFont: { family: 'Arial', size: 12 },
+            bodyFont: { family: 'Arial', size: 12 },
             padding: 10,
             callbacks: {
               title: (items) => fmtDate(items[0].parsed.x),
@@ -751,10 +912,10 @@
           x: {
             type: 'time',
             time: { unit: 'month', displayFormats: { month: 'MMM yy' } },
-            min: CONTRACT.startDate,
-            max: CONTRACT.endDate,
+            min: dateFilter.from,
+            max: dateFilter.to,
             grid: { color: '#f0eeec' },
-            ticks: { color: '#737373', font: { family: 'Geist Mono', size: 10 } }
+            ticks: { color: '#737373', font: { family: 'Arial', size: 10 } }
           },
           y: {
             beginAtZero: true,
@@ -762,7 +923,7 @@
             grid: { color: '#f0eeec' },
             ticks: {
               color: '#737373',
-              font: { family: 'Geist Mono', size: 10 },
+              font: { family: 'Arial', size: 10 },
               callback: (v) => fmtN(v)
             }
           }
@@ -774,6 +935,69 @@
   // Wire up
   document.getElementById('btn-save').addEventListener('click', addReading);
   document.getElementById('input-km').addEventListener('keydown', (e) => { if (e.key === 'Enter') addReading(); });
+
+  // ============================================================
+  // Dato-filter (styrer både KPI-er og graf)
+  // ============================================================
+  const dateFilter = {
+    from: CONTRACT.startDate,
+    to:   CONTRACT.endDate,    // default: hele perioden
+    mode: 'full'
+  };
+
+  // Finn det leasingåret vi er i nå (anniversary → anniversary)
+  function currentLeaseYearWindow() {
+    const start = new Date(CONTRACT.startDate);
+    const end   = new Date(CONTRACT.endDate);
+    const now   = new Date();
+    let yearStart = new Date(start);
+    let yearEnd   = new Date(yearStart); yearEnd.setFullYear(yearEnd.getFullYear() + 1);
+    while (yearEnd <= now && yearEnd < end) {
+      yearStart = new Date(yearEnd);
+      yearEnd = new Date(yearStart); yearEnd.setFullYear(yearEnd.getFullYear() + 1);
+    }
+    if (yearEnd > end) yearEnd = new Date(end);
+    return {
+      from: yearStart.toISOString().slice(0, 10),
+      to:   yearEnd.toISOString().slice(0, 10)
+    };
+  }
+
+  function applyRange(mode) {
+    if (mode === 'ytd') {
+      // Hittil i leasingåret: anniversary → i dag
+      const w = currentLeaseYearWindow();
+      dateFilter.from = w.from;
+      dateFilter.to   = today();
+    } else if (mode === 'year') {
+      // Hele leasingåret: anniversary → neste anniversary
+      const w = currentLeaseYearWindow();
+      dateFilter.from = w.from;
+      dateFilter.to   = w.to;
+    } else if (mode === 'full') {
+      dateFilter.from = CONTRACT.startDate;
+      dateFilter.to   = CONTRACT.endDate;
+    } else if (mode === 'custom') {
+      dateFilter.from = document.getElementById('filter-from').value || CONTRACT.startDate;
+      dateFilter.to   = document.getElementById('filter-to').value   || today();
+    }
+    dateFilter.mode = mode;
+    document.querySelectorAll('#date-filter button').forEach(b => {
+      b.classList.toggle('active', b.dataset.range === mode);
+    });
+    document.getElementById('custom-range').classList.toggle('show', mode === 'custom');
+    render();
+  }
+
+  document.querySelectorAll('#date-filter button').forEach(btn => {
+    btn.addEventListener('click', () => applyRange(btn.dataset.range));
+  });
+  document.getElementById('filter-from').addEventListener('change', () => applyRange('custom'));
+  document.getElementById('filter-to').addEventListener('change', () => applyRange('custom'));
+
+  // Initialiser custom-felter med rimelige default-verdier (leasingstart → i dag)
+  document.getElementById('filter-from').value = CONTRACT.startDate;
+  document.getElementById('filter-to').value   = today();
 
   // Chart.js trenger date-adapter for tidsakse — last den dynamisk
   (function loadAdapterAndStart(){
