@@ -1,0 +1,15 @@
+name: Keep Supabase alive
+on:
+  schedule:
+    - cron: '0 9 * * 0'   # hver søndag kl 09:00 UTC (11:00 norsk tid)
+  workflow_dispatch:       # gjør at du kan kjøre den manuelt også
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase
+        run: |
+          curl -s -o /dev/null -w "HTTP %{http_code}\n" \
+            "https://nxyptkhcfwsyyhryhxlm.supabase.co/rest/v1/readings?select=id&limit=1" \
+            -H "apikey: sb_publishable_25qLAzCMfL9R6ka71pV92g_XXKpFBFh"
